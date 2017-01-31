@@ -1,5 +1,6 @@
 package org.nougat.arc.hexnet.junction;
 
+import org.nougat.arc.hexnet.Address;
 import org.nougat.arc.hexnet.Packet;
 
 /**
@@ -7,12 +8,17 @@ import org.nougat.arc.hexnet.Packet;
  * The junction to the west branches north, the destination to the east branches south.
  */
 public class NdNWESJunction extends NWEJunction {
+    public NdNWESJunction(Address address) {
+        super(address);
+    }
+
     @Override
     protected boolean sendWest() {
         Packet nextPacket = toWest.poll();
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.yGreaterThan(west.getAddress())) {
             west.fromEastTurn(nextPacket);
         }
@@ -28,6 +34,7 @@ public class NdNWESJunction extends NWEJunction {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.yLessThan(east.getAddress())) {
             east.fromWestTurn(nextPacket);
         }

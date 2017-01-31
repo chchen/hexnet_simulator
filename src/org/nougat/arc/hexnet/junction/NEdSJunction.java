@@ -1,7 +1,6 @@
 package org.nougat.arc.hexnet.junction;
 
-import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.Packet;
+import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -20,6 +19,25 @@ public class NEdSJunction extends Thread implements NorthIn, EastIn, SouthIn {
     private Queue<Packet> toSouth = new ConcurrentLinkedDeque<>();
 
     private volatile boolean run = true;
+
+    public NEdSJunction(Address address) {
+        this.address = address;
+    }
+
+    @Override
+    public void attachEast(WestIn east) {
+        this.east = east;
+    }
+
+    @Override
+    public void attachNorth(SouthIn north) {
+        this.north = north;
+    }
+
+    @Override
+    public void attachSouth(NorthIn south) {
+        this.south = south;
+    }
 
     @Override
     public void run() {
@@ -43,6 +61,7 @@ public class NEdSJunction extends Thread implements NorthIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.xLessThan(north.getAddress())) {
             north.fromSouthTurn(nextPacket);
         }
@@ -57,6 +76,7 @@ public class NEdSJunction extends Thread implements NorthIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.xLessThan(south.getAddress())) {
             south.fromNorthThru(nextPacket);
         }
@@ -71,6 +91,7 @@ public class NEdSJunction extends Thread implements NorthIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         east.fromWestThru(nextPacket);
         return true;
     }

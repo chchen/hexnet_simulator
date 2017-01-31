@@ -1,7 +1,6 @@
 package org.nougat.arc.hexnet.junction;
 
-import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.Packet;
+import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -25,6 +24,10 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
 
     private volatile boolean run = true;
 
+    public NWEJunction(Address address) {
+        this.address = address;
+    }
+
     @Override
     public void run() {
         while (run) {
@@ -47,6 +50,7 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(north.getAddress())) {
             north.fromSouthTurn(nextPacket);
         }
@@ -61,6 +65,7 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(west.getAddress())) {
             west.fromEastTurn(nextPacket);
         }
@@ -75,6 +80,7 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(east.getAddress())) {
             east.fromWestTurn(nextPacket);
         }
@@ -100,6 +106,11 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     }
 
     @Override
+    public void attachEast(WestIn east) {
+        this.east = east;
+    }
+
+    @Override
     public void fromNorthThru(Packet packet) {
         toWest.add(packet);
     }
@@ -110,8 +121,18 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     }
 
     @Override
+    public void attachNorth(SouthIn north) {
+        this.north = north;
+    }
+
+    @Override
     public void fromWestTurn(Packet packet) {
         toNorth.add(packet);
+    }
+
+    @Override
+    public void attachWest(EastIn west) {
+        this.west = west;
     }
 
     @Override

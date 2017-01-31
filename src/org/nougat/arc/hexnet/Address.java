@@ -9,6 +9,10 @@ public class Address {
         yCoord = y;
     }
 
+    public String asString() {
+        return String.format("(%d, %d)", xCoord, yCoord);
+    }
+
     public boolean equals(Address other) {
         return other.xCoord == this.xCoord && other.yCoord == this.yCoord;
     }

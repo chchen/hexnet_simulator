@@ -1,7 +1,6 @@
 package org.nougat.arc.hexnet.junction;
 
-import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.Packet;
+import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -25,6 +24,10 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
 
     private volatile boolean run = true;
 
+    public WESJunction(Address address) {
+        this.address = address;
+    }
+
     @Override
     public void run() {
         while (run) {
@@ -47,6 +50,7 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(west.getAddress())) {
             west.fromEastTurn(nextPacket);
         }
@@ -61,6 +65,7 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(east.getAddress())) {
             east.fromWestTurn(nextPacket);
         }
@@ -75,6 +80,7 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
         if (nextPacket == null) {
             return false;
         }
+        nextPacket.markPath(getAddress());
         if (nextPacket.destination.equals(south.getAddress())) {
             south.fromNorthTurn(nextPacket);
         }
@@ -100,6 +106,11 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
     }
 
     @Override
+    public void attachWest(EastIn west) {
+        this.west = west;
+    }
+
+    @Override
     public void fromEastThru(Packet packet) {
         toWest.add(packet);
     }
@@ -110,6 +121,11 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
     }
 
     @Override
+    public void attachEast(WestIn east) {
+        this.east = east;
+    }
+
+    @Override
     public void fromSouthThru(Packet packet) {
         toEast.add(packet);
     }
@@ -117,5 +133,10 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
     @Override
     public void fromSouthTurn(Packet packet) {
         toWest.add(packet);
+    }
+
+    @Override
+    public void attachSouth(NorthIn south) {
+        this.south = south;
     }
 }
