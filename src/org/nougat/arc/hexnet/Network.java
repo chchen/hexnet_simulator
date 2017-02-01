@@ -1,6 +1,7 @@
 package org.nougat.arc.hexnet;
 
 import org.nougat.arc.hexnet.destination.SDestination;
+import org.nougat.arc.hexnet.destination.WDestination;
 import org.nougat.arc.hexnet.junction.*;
 
 import java.util.ArrayList;
@@ -133,9 +134,65 @@ public class Network {
      *
      * @param yCoord
      */
-    private void stitchRows(int yCoord) {}
+    private void stitchRows(int yCoord) {
+        int startX = (yCoord % 4 == 0) ? 3 : 1;
+        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
+            SouthIn north = (SouthIn) nodes[yCoord + 1][xOffset];
+            NorthIn south = (NorthIn) nodes[yCoord - 1][xOffset];
+            assert north != null;
+            assert south != null;
 
+            NEdSJunction node12 = new NEdSJunction(new Address(xOffset, yCoord));
+            addJunction(node12);
+            stitchNS(north, node12);
+            stitchNS(node12, south);
 
+            WDestination dest12 = new WDestination(new Address(xOffset, yCoord));
+            destinations.add(dest12);
+            stitchWE(node12, dest12);
+        }
+    }
+
+    /**
+     * Ensure that all the paths to the north are terminated by loopback nodes
+     *
+     * @param yCoord
+     */
+    private void closeNorth(int yCoord) {
+        int startX = 3;
+        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
+            NorthIn node33 = (NorthIn) nodes[yCoord][xOffset];
+            assert node33 != null;
+
+            SouthIn north = (SouthIn) nodes[yCoord + 1][xOffset];
+            assert north == null;
+
+            north = new SLoopback(new Address(xOffset, yCoord + 1));
+            junctions.add(north);
+            stitchNS(north, node33);
+        }
+    }
+
+    /**
+     * Ensure that all the paths to the south are terminated by loopback nodes
+     *
+     * @param yCoord
+     */
+    private void closeSouth(int yCoord) {
+        int startX = 3;
+        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
+            SouthIn node31 = (SouthIn) nodes[yCoord][xOffset];
+            assert node31 != null;
+
+            NorthIn south = (NorthIn) nodes[yCoord - 1][xOffset];
+            assert south == null;
+
+            south = new NLoopback(new Address(xOffset, yCoord - 1));
+            junctions.add(south);
+            stitchNS(node31, south);
+        }
+    }
+    
     public Network(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
