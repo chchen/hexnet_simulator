@@ -13,6 +13,14 @@ public class Address {
         return String.format("(%d, %d)", xCoord, yCoord);
     }
 
+    public int getYCoord() {
+        return yCoord;
+    }
+
+    public int getxCoord() {
+        return xCoord;
+    }
+
     public boolean equals(Address other) {
         return other.xCoord == this.xCoord && other.yCoord == this.yCoord;
     }
