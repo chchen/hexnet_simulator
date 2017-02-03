@@ -1,69 +1,30 @@
 package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.EastIn;
 import org.nougat.arc.hexnet.Packet;
-import org.nougat.arc.hexnet.WestIn;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.*;
 
-public class WLoopback extends Thread implements WestIn {
-    private Address address;
-
-    private EastIn west;
-
-    private Queue<Packet> toReturn = new ConcurrentLinkedDeque<>();
-
-    private volatile boolean run = true;
-
-    public WLoopback(Address address) {
-        this.address = address;
+public class WLoopback extends Junction {
+    public WLoopback(Address address, ExecutorService executor) {
+        super(address, executor);
     }
 
     @Override
-    public void run() {
-        while (run) {
-            boolean sentW = sendWest();
-            if (!sentW) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    protected boolean sendWest() {
-        Packet nextPacket = toReturn.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        west.fromEastThru(nextPacket);
-        return true;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
+    protected void sendWest(Packet packet) {
+        packet.markPath(getAddress());
+        west.fromEastThru(packet);
+        executor.submit(sendWestTask);
     }
 
     @Override
     public void fromWestThru(Packet packet) {
-        toReturn.add(packet);
+        toWest.add(packet);
     }
 
     @Override
     public void fromWestTurn(Packet packet) {
-        toReturn.add(packet);
-    }
-
-    @Override
-    public void attachWest(EastIn west) {
-        this.west = west;
+        toWest.add(packet);
     }
 
     @Override
@@ -90,4 +51,31 @@ public class WLoopback extends Thread implements WestIn {
     public String getLabel() {
         return "WL";
     }
+
+    @Override
+    public void fromEastThru(Packet packet) {}
+
+    @Override
+    public void fromNorthThru(Packet packet) {}
+
+    @Override
+    public void fromSouthThru(Packet packet) {}
+
+    @Override
+    public void fromEastTurn(Packet packet) {}
+
+    @Override
+    public void fromNorthTurn(Packet packet) {}
+
+    @Override
+    public void fromSouthTurn(Packet packet) {}
+
+    @Override
+    protected void sendNorth(Packet packet) {}
+
+    @Override
+    protected void sendSouth(Packet packet) {}
+
+    @Override
+    protected void sendEast(Packet packet) {}
 }

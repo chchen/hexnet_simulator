@@ -1,69 +1,30 @@
 package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.EastIn;
 import org.nougat.arc.hexnet.Packet;
-import org.nougat.arc.hexnet.WestIn;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
 
-public class ELoopback extends Thread implements EastIn {
-    private Address address;
-
-    private WestIn east;
-
-    private Queue<Packet> toReturn = new ConcurrentLinkedDeque<>();
-
-    private volatile boolean run = true;
-
-    public ELoopback(Address address) {
-        this.address = address;
+public class ELoopback extends Junction {
+    public ELoopback(Address address, ExecutorService executor) {
+        super(address, executor);
     }
 
     @Override
-    public void run() {
-        while (run) {
-            boolean sentE = sendEast();
-            if (!sentE) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    protected boolean sendEast() {
-        Packet nextPacket = toReturn.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        east.fromWestThru(nextPacket);
-        return true;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
+    protected void sendEast(Packet packet) {
+        packet.markPath(getAddress());
+        east.fromWestThru(packet);
+        executor.submit(sendEastTask);
     }
 
     @Override
     public void fromEastThru(Packet packet) {
-        toReturn.add(packet);
+        toEast.add(packet);
     }
 
     @Override
     public void fromEastTurn(Packet packet) {
-        toReturn.add(packet);
-    }
-
-    @Override
-    public void attachEast(WestIn east) {
-        this.east = east;
+        toEast.add(packet);
     }
 
     @Override
@@ -90,4 +51,31 @@ public class ELoopback extends Thread implements EastIn {
     public String getLabel() {
         return "EL";
     }
+
+    @Override
+    public void fromWestThru(Packet packet) {}
+
+    @Override
+    public void fromNorthThru(Packet packet) {}
+
+    @Override
+    public void fromSouthThru(Packet packet) {}
+
+    @Override
+    public void fromWestTurn(Packet packet) {}
+
+    @Override
+    public void fromNorthTurn(Packet packet) {}
+
+    @Override
+    public void fromSouthTurn(Packet packet) {}
+
+    @Override
+    protected void sendNorth(Packet packet) {}
+
+    @Override
+    protected void sendSouth(Packet packet) {}
+
+    @Override
+    protected void sendWest(Packet packet) {}
 }

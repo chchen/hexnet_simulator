@@ -7,6 +7,8 @@ import org.nougat.arc.hexnet.junction.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -24,8 +26,9 @@ public class Network {
     public List<Locatable> destinations;
     public List<Locatable> junctions;
 
-    Queue<Packet> tracePackets;
-    Semaphore simulationRunning = new Semaphore(1);
+    private Queue<Packet> tracePackets;
+    private Semaphore simulationRunning = new Semaphore(1);
+    private ExecutorService executor;
 
     /**
      * Currently builds a 1+2n row by m column network.
@@ -50,7 +53,7 @@ public class Network {
      */
     private void rowUp(int yCoord) {
         EastIn last;
-        ELoopback node0 = new ELoopback(new Address(0, yCoord));
+        ELoopback node0 = new ELoopback(new Address(0, yCoord), executor);
         addJunction(node0);
         NWEJunction node1 = new NWEJunction(new Address(1, yCoord));
         addJunction(node1);
@@ -65,7 +68,7 @@ public class Network {
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
-            WESJunction node3 = new WESJunction(new Address(xOffset + 1, yCoord));
+            WESJunction node3 = new WESJunction(new Address(xOffset + 1, yCoord), executor);
             addJunction(node3);
             stitchWE(node2, node3);
 
@@ -83,7 +86,7 @@ public class Network {
 
             last = node5;
         }
-        WLoopback node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord));
+        WLoopback node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord), executor);
         addJunction(node6);
         stitchWE(last, node6);
     }
@@ -93,9 +96,9 @@ public class Network {
      */
     private void rowDown(int yCoord) {
         EastIn last;
-        ELoopback node0 = new ELoopback(new Address(0, yCoord));
+        ELoopback node0 = new ELoopback(new Address(0, yCoord), executor);
         addJunction(node0);
-        WESJunction node1 = new WESJunction(new Address(1, yCoord));
+        WESJunction node1 = new WESJunction(new Address(1, yCoord), executor);
         addJunction(node1);
         stitchWE(node0, node1);
         last = node1;
@@ -120,13 +123,13 @@ public class Network {
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
-            WESJunction node5 = new WESJunction(new Address(xOffset + 3, yCoord));
+            WESJunction node5 = new WESJunction(new Address(xOffset + 3, yCoord), executor);
             addJunction(node5);
             stitchWE(node4, node5);
 
             last = node5;
         }
-        WestIn node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord));
+        WestIn node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord), executor);
         addJunction(node6);
         stitchWE(last, node6);
     }
@@ -218,6 +221,8 @@ public Network(Queue<Packet> tracePackets, int rows, int columns) {
         junctions = new ArrayList<>();
 
         this.tracePackets = tracePackets;
+
+        executor = Executors.newWorkStealingPool(64);
 
         boolean up = true;
         for (int yCoord = 1; yCoord < yAddresses; yCoord = yCoord + 2) {
