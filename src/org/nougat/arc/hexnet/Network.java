@@ -5,11 +5,11 @@ import org.nougat.arc.hexnet.destination.WDestination;
 import org.nougat.arc.hexnet.junction.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
 
 /**
- * A packet-switched network that has a
+ * A packet-switched network
  */
 public class Network {
     private Locatable[][] nodes;
@@ -20,8 +20,10 @@ public class Network {
     private final int xAddresses;
     private final int yAddresses;
 
-    private List<Locatable> destinations;
-    private List<Locatable> junctions;
+    public List<Locatable> destinations;
+    public List<Locatable> junctions;
+
+    Queue<Packet> tracePackets;
 
     /**
      * Currently builds a 1+2n row by m column network.
@@ -36,8 +38,9 @@ public class Network {
      */
 
     private void addJunction(Locatable newJunction) {
+        System.out.println("Adding junction " + newJunction + " at " + newJunction.getAddress().asString());
         junctions.add(newJunction);
-        nodes[newJunction.getAddress().getYCoord()][newJunction.getAddress().getxCoord()] = newJunction;
+        nodes[newJunction.getAddress().getYCoord()][newJunction.getAddress().getXCoord()] = newJunction;
     }
 
     /**
@@ -51,12 +54,12 @@ public class Network {
         addJunction(node1);
         stitchWE(node0, node1);
         last = node1;
-        for (int xOffset = 2; xOffset < xAddresses; xOffset = xOffset + 4) {
+        for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
             NdNWESJunction node2 = new NdNWESJunction(new Address(xOffset, yCoord));
             addJunction(node2);
             stitchWE(last, node2);
 
-            SDestination dest2 = new SDestination(new Address(xOffset, yCoord));
+            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets);
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
@@ -68,7 +71,7 @@ public class Network {
             addJunction(node4);
             stitchWE(node3, node4);
 
-            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord));
+            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets);
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
@@ -78,7 +81,7 @@ public class Network {
 
             last = node5;
         }
-        WLoopback node6 = new WLoopback(new Address(last.getAddress().getxCoord() + 1, yCoord));
+        WLoopback node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord));
         addJunction(node6);
         stitchWE(last, node6);
     }
@@ -94,12 +97,12 @@ public class Network {
         addJunction(node1);
         stitchWE(node0, node1);
         last = node1;
-        for (int xOffset = 2; xOffset < xAddresses; xOffset = xOffset + 4) {
+        for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
             NdSWENJunction node2 = new NdSWENJunction(new Address(xOffset, yCoord));
             addJunction(node2);
             stitchWE(last, node2);
 
-            SDestination dest2 = new SDestination(new Address(xOffset, yCoord));
+            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets);
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
@@ -111,7 +114,7 @@ public class Network {
             addJunction(node4);
             stitchWE(node3, node4);
 
-            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord));
+            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets);
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
@@ -121,7 +124,7 @@ public class Network {
 
             last = node5;
         }
-        WestIn node6 = new WLoopback(new Address(last.getAddress().getxCoord() + 1, yCoord));
+        WestIn node6 = new WLoopback(new Address(last.getAddress().getXCoord() + 1, yCoord));
         addJunction(node6);
         stitchWE(last, node6);
     }
@@ -135,8 +138,9 @@ public class Network {
      * @param yCoord
      */
     private void stitchRows(int yCoord) {
+        System.out.println("Stitching at row " + yCoord);
         int startX = (yCoord % 4 == 0) ? 3 : 1;
-        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
+        for (int xOffset = startX; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
             SouthIn north = (SouthIn) nodes[yCoord + 1][xOffset];
             NorthIn south = (NorthIn) nodes[yCoord - 1][xOffset];
             assert north != null;
@@ -147,93 +151,102 @@ public class Network {
             stitchNS(north, node12);
             stitchNS(node12, south);
 
-            WDestination dest12 = new WDestination(new Address(xOffset, yCoord));
+            WDestination dest12 = new WDestination(new Address(xOffset, yCoord), tracePackets);
             destinations.add(dest12);
             stitchWE(node12, dest12);
         }
     }
 
     /**
-     * Ensure that all the paths to the north are terminated by loopback nodes
+     * Ensure that all the paths to the south or north are terminated by loopback nodes
      *
      * @param yCoord
      */
-    private void closeNorth(int yCoord) {
+    private void closeEndRow(int yCoord) {
+        System.out.println("Closing end row");
         int startX = 3;
-        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
-            NorthIn node33 = (NorthIn) nodes[yCoord][xOffset];
-            assert node33 != null;
+        for (int xOffset = startX; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
+            Locatable junctionNode = nodes[yCoord][xOffset];
+            assert junctionNode != null;
 
-            SouthIn north = (SouthIn) nodes[yCoord + 1][xOffset];
-            assert north == null;
+            NorthIn south;
+            SouthIn north;
 
-            north = new SLoopback(new Address(xOffset, yCoord + 1));
-            junctions.add(north);
-            stitchNS(north, node33);
+            if (nodes[yCoord][xOffset].hasNorth()) {
+                System.out.println("Found north-facing junction");
+                south = (NorthIn) nodes[yCoord][xOffset];
+
+                assert nodes[yCoord + 1][xOffset] == null;
+                System.out.println("north is empty");
+
+                north = new SLoopback(new Address(xOffset, yCoord + 1));
+                System.out.println("adding loopback at address" + north.getAddress().asString());
+                addJunction(north);
+            }
+            else {
+                System.out.println("Found south-facing junction");
+                north = (SouthIn) nodes[yCoord][xOffset];
+
+                assert nodes[yCoord - 1][xOffset] == null;
+                System.out.println("south is empty");
+
+                south = new NLoopback(new Address(xOffset, yCoord - 1));
+                System.out.println("adding loopback at address" + south.getAddress().asString());
+                addJunction(south);
+            }
+
+            stitchNS(north, south);
         }
     }
 
-    /**
-     * Ensure that all the paths to the south are terminated by loopback nodes
-     *
-     * @param yCoord
-     */
-    private void closeSouth(int yCoord) {
-        int startX = 3;
-        for (int xOffset = startX; xOffset < xAddresses; xOffset = xOffset + 4) {
-            SouthIn node31 = (SouthIn) nodes[yCoord][xOffset];
-            assert node31 != null;
-
-            NorthIn south = (NorthIn) nodes[yCoord - 1][xOffset];
-            assert south == null;
-
-            south = new NLoopback(new Address(xOffset, yCoord - 1));
-            junctions.add(south);
-            stitchNS(node31, south);
-        }
-    }
-    
-    public Network(int rows, int columns) {
+public Network(Queue<Packet> tracePackets, int rows, int columns) {
+        assert rows > 0;
+        assert (rows - 1) % 2 == 0;
+        assert columns > 0;
         this.rows = rows;
         this.columns = columns;
 
         xAddresses = 1 + (4 * columns) + 2;
         yAddresses = 1 + (2 * rows) + 2;
+        System.out.println(String.format("Making network of %d rows %d columns", yAddresses, xAddresses));
 
         nodes = new Locatable[yAddresses][xAddresses];
 
         destinations = new ArrayList<>();
         junctions = new ArrayList<>();
 
+        this.tracePackets = tracePackets;
+
+        boolean up = true;
+        for (int yCoord = 1; yCoord < yAddresses; yCoord = yCoord + 2) {
+            System.out.println("Generating for row " + yCoord);
+            if (up) {
+                rowUp(yCoord);
+            }
+            else {
+                rowDown(yCoord);
+            }
+            up = !up;
+        }
+
+        for (int yCoord = 2; yCoord < yAddresses - 1; yCoord = yCoord + 2) {
+            stitchRows(yCoord);
+        }
+
+        closeEndRow(1);
+        closeEndRow(yAddresses - 2);
     }
 
-    /*
-    private List<List<Locatable>> rows = new ArrayList<>();
-
-
-    private void generateRow() {
-        int width = 1;
-
-        List<Locatable> bottomRow = new ArrayList<>();
-        List<Locatable> middleRow = new ArrayList<>();
-        List<Locatable> topRow = new ArrayList<>();
-
-        //bottomrow
-        EastIn last = new ELoopback(new Address(0, 1));
-        bottomRow.add(last);
-        for (int col = 0; col < width; col++) {
-            NWEJunction node10 = new NWEJunction(new Address(col + 1, 0));
-            stitchWE(last, node10);
-            NdNWESJunction node20 = new NdNWESJunction(new Address(col + 2, 0));
-            stitchWE(node10, node20);
-            WESJunction node30 = new WESJunction(new Address(col + 3, 0));
-            stitchWE(node20, node30);
-            NdSWENJunction node40 = new NdSWENJunction(new Address(col + 3, y 0));
-
-
+    public void start() throws InterruptedException {
+        for (Locatable d : destinations) {
+            Thread t = (Thread) d;
+            t.start();
+        }
+        for (Locatable d : junctions) {
+            Thread t = (Thread) d;
+            t.start();
         }
     }
-    */
 
     public static void stitchNS(SouthIn north, NorthIn south) {
         north.attachSouth(south);
@@ -245,4 +258,15 @@ public class Network {
         east.attachWest(west);
     }
 
+    public int getRows() {
+        return rows;
+    }
+
+    public int getColumns() {
+        return columns;
+    }
+
+    public Locatable[][] getNodes() {
+        return nodes;
+    }
 }

@@ -17,7 +17,7 @@ public class Address {
         return yCoord;
     }
 
-    public int getxCoord() {
+    public int getXCoord() {
         return xCoord;
     }
 

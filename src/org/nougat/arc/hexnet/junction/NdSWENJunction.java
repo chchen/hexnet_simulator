@@ -43,4 +43,9 @@ public class NdSWENJunction extends NWEJunction {
         }
         return true;
     }
+
+    @Override
+    public String getLabel() {
+        return "SWEN dest N";
+    }
 }

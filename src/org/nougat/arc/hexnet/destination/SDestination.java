@@ -17,9 +17,12 @@ public class SDestination extends Thread implements SouthIn, Sender {
     private Queue<Packet> toSouth = new ConcurrentLinkedDeque<>();
     private Queue<Packet> inbox = new ConcurrentLinkedDeque<>();
 
+    private Queue<Packet> tracePackets;
+
     private volatile boolean run = true;
 
-    public SDestination(Address address) {
+    public SDestination(Address address, Queue<Packet> tracePackets) {
+        this.tracePackets = tracePackets;
         this.address = address;
     }
 
@@ -71,6 +74,7 @@ public class SDestination extends Thread implements SouthIn, Sender {
                 nextPacket.latencyMs(),
                 nextPacket.getPathString()
         ));
+        tracePackets.offer(nextPacket);
         return true;
     }
 
@@ -93,5 +97,30 @@ public class SDestination extends Thread implements SouthIn, Sender {
     public void sendPacket(int payload, Address destination) {
         System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
         toSouth.add(new Packet(payload, address, destination));
+    }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return false;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "";
     }
 }

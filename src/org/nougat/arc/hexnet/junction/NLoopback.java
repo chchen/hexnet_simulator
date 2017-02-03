@@ -65,4 +65,29 @@ public class NLoopback extends Thread implements NorthIn {
     public void attachNorth(SouthIn north) {
         this.north = north;
     }
+
+    @Override
+    public boolean hasNorth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return false;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "NL";
+    }
 }

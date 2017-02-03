@@ -65,4 +65,29 @@ public class ELoopback extends Thread implements EastIn {
     public void attachEast(WestIn east) {
         this.east = east;
     }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return false;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return true;
+    }
+
+    @Override
+    public String getLabel() {
+        return "EL";
+    }
 }

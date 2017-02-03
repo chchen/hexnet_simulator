@@ -139,4 +139,29 @@ public class WESJunction extends Thread implements WestIn, EastIn, SouthIn {
     public void attachSouth(NorthIn south) {
         this.south = south;
     }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return true;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return true;
+    }
+
+    @Override
+    public String getLabel() {
+        return "WES";
+    }
 }

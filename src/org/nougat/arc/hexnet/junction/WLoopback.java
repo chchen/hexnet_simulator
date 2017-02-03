@@ -65,4 +65,29 @@ public class WLoopback extends Thread implements WestIn {
     public void attachWest(EastIn west) {
         this.west = west;
     }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return true;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "WL";
+    }
 }

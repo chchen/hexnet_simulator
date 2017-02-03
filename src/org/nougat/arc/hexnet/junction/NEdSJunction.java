@@ -130,4 +130,29 @@ public class NEdSJunction extends Thread implements NorthIn, EastIn, SouthIn {
     public void fromSouthTurn(Packet packet) {
         toEast.add(packet);
     }
+
+    @Override
+    public boolean hasNorth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return false;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return true;
+    }
+
+    @Override
+    public String getLabel() {
+        return "NS dest E";
+    }
 }

@@ -17,10 +17,13 @@ public class WDestination extends Thread implements WestIn, Sender {
     private Queue<Packet> toWest = new ConcurrentLinkedDeque<>();
     private Queue<Packet> inbox = new ConcurrentLinkedDeque<>();
 
+    private Queue<Packet> tracePackets;
+
     private volatile boolean run = true;
 
-    public WDestination(Address address) {
+    public WDestination(Address address, Queue<Packet> tracePackets) {
         this.address = address;
+        this.tracePackets = tracePackets;
     }
 
     @Override
@@ -52,6 +55,7 @@ public class WDestination extends Thread implements WestIn, Sender {
                 nextPacket.latencyMs(),
                 nextPacket.getPathString()
         ));
+        tracePackets.offer(nextPacket);
         return true;
     }
 
@@ -92,5 +96,30 @@ public class WDestination extends Thread implements WestIn, Sender {
     public void sendPacket(int payload, Address destination) {
         System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
         toWest.add(new Packet(payload, address, destination));
+    }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return true;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "";
     }
 }

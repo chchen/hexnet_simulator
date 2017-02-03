@@ -65,4 +65,29 @@ public class SLoopback extends Thread implements SouthIn {
     public void attachSouth(NorthIn south) {
         this.south = south;
     }
+
+    @Override
+    public boolean hasNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return false;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "SL";
+    }
 }

@@ -139,4 +139,29 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     public void fromWestThru(Packet packet) {
         toEast.add(packet);
     }
+
+    @Override
+    public boolean hasNorth() {
+        return true;
+    }
+
+    @Override
+    public boolean hasSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean hasWest() {
+        return true;
+    }
+
+    @Override
+    public boolean hasEast() {
+        return true;
+    }
+
+    @Override
+    public String getLabel() {
+        return "NWE";
+    }
 }
