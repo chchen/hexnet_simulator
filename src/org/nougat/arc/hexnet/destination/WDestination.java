@@ -4,6 +4,7 @@ import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Semaphore;
 
 /**
  * A Destination which is connected to a junction to the west.
@@ -19,11 +20,14 @@ public class WDestination extends Thread implements WestIn, Sender {
 
     private Queue<Packet> tracePackets;
 
+    private Semaphore permit;
+
     private volatile boolean run = true;
 
-    public WDestination(Address address, Queue<Packet> tracePackets) {
+    public WDestination(Address address, Queue<Packet> tracePackets, Semaphore permit) {
         this.address = address;
         this.tracePackets = tracePackets;
+        this.permit = permit;
     }
 
     @Override
@@ -56,6 +60,7 @@ public class WDestination extends Thread implements WestIn, Sender {
                 nextPacket.getPathString()
         ));
         tracePackets.offer(nextPacket);
+        permit.release();
         return true;
     }
 
@@ -94,9 +99,16 @@ public class WDestination extends Thread implements WestIn, Sender {
     }
 
     public void sendPacket(int payload, Address destination) {
-        System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
-        toWest.add(new Packet(payload, address, destination));
+        try {
+            permit.acquire();
+            System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
+            toWest.add(new Packet(payload, address, destination));
+        }
+        catch (InterruptedException e) {
+            System.err.println(e.getMessage());
+        }
     }
+
 
     @Override
     public boolean hasNorth() {

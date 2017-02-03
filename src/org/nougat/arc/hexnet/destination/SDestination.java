@@ -4,6 +4,7 @@ import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Semaphore;
 
 /**
  * A Destination which is connected to a junction to the south.
@@ -19,11 +20,14 @@ public class SDestination extends Thread implements SouthIn, Sender {
 
     private Queue<Packet> tracePackets;
 
+    private Semaphore permit;
+
     private volatile boolean run = true;
 
-    public SDestination(Address address, Queue<Packet> tracePackets) {
+    public SDestination(Address address, Queue<Packet> tracePackets, Semaphore permit) {
         this.tracePackets = tracePackets;
         this.address = address;
+        this.permit = permit;
     }
 
     @Override
@@ -75,6 +79,7 @@ public class SDestination extends Thread implements SouthIn, Sender {
                 nextPacket.getPathString()
         ));
         tracePackets.offer(nextPacket);
+        permit.release();
         return true;
     }
 
@@ -95,8 +100,14 @@ public class SDestination extends Thread implements SouthIn, Sender {
 
     @Override
     public void sendPacket(int payload, Address destination) {
-        System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
-        toSouth.add(new Packet(payload, address, destination));
+        try {
+            permit.acquire();
+            System.out.println(String.format("%s: send %d to %s", address.asString(), payload, destination.asString()));
+            toSouth.add(new Packet(payload, address, destination));
+        }
+        catch (InterruptedException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
