@@ -5,6 +5,7 @@ import org.nougat.arc.hexnet.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Junction extends Thread implements NorthIn, SouthIn, WestIn, EastIn {
     protected ExecutorService executor;
@@ -68,43 +69,79 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
 
     protected final Runnable sendNorthTask = () -> {
         try {
-            Packet packet = toNorth.take();
-            sendNorth(packet);
+            Packet packet = toNorth.poll(100, TimeUnit.MILLISECONDS);
+            if (packet != null) {
+                sendNorth(packet);
+            }
+            else {
+                reSendNorthTask();
+            }
         }
         catch (InterruptedException e) {
             //
         }
     };
+
+    private void reSendNorthTask() {
+        executor.submit(sendNorthTask);
+    }
 
     protected final Runnable sendSouthTask = () -> {
         try {
-            Packet packet = toSouth.take();
-            sendSouth(packet);
+            Packet packet = toSouth.poll(100, TimeUnit.MILLISECONDS);
+            if (packet != null) {
+                sendSouth(packet);
+            }
+            else {
+                reSendSouthTask();
+            }
         }
         catch (InterruptedException e) {
             //
         }
     };
+
+    private void reSendSouthTask() {
+        executor.submit(sendSouthTask);
+    }
 
     protected final Runnable sendWestTask = () -> {
         try {
-            Packet packet = toWest.take();
-            sendWest(packet);
+            Packet packet = toWest.poll(100, TimeUnit.MILLISECONDS);
+            if (packet != null) {
+                sendWest(packet);
+            }
+            else {
+                reSendWestTask();
+            }
         }
         catch (InterruptedException e) {
             //
         }
     };
 
+    private void reSendWestTask() {
+        executor.submit(sendWestTask);
+    }
+
     protected final Runnable sendEastTask = () -> {
         try {
-            Packet packet = toEast.take();
-            sendEast(packet);
+            Packet packet = toEast.poll(100, TimeUnit.MILLISECONDS);
+            if (packet != null) {
+                sendEast(packet);
+            }
+            else {
+                reSendEastTask();
+            }
         }
         catch (InterruptedException e) {
             //
         }
     };
+
+    private void reSendEastTask() {
+        executor.submit(sendEastTask);
+    }
 
     protected abstract void sendNorth(Packet packet);
 

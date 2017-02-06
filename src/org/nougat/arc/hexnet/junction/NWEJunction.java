@@ -2,97 +2,16 @@ package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.*;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
 
 /**
  * This is a junction that has junctions to the north, west and east.
  * The junctions to the west and the east have destinations to their north.
  * The junction to the north has a destination to the east.
  */
-public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
-    private Address address;
-
-    // Adjacent junctions; We flip directions (junction to the south needs a NorthIn)
-    protected EastIn west;
-    protected WestIn east;
-    protected SouthIn north;
-
-    protected Queue<Packet> toNorth = new ConcurrentLinkedDeque<>();
-    protected Queue<Packet> toWest = new ConcurrentLinkedDeque<>();
-    protected Queue<Packet> toEast = new ConcurrentLinkedDeque<>();
-
-    private volatile boolean run = true;
-
-    public NWEJunction(Address address) {
-        this.address = address;
-    }
-
-    @Override
-    public void run() {
-        while (run) {
-            boolean sentN = sendNorth();
-            boolean sentW = sendWest();
-            boolean sentE = sendEast();
-            if (!sentN && !sentW && !sentE) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    protected boolean sendNorth() {
-        Packet nextPacket = toNorth.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        if (nextPacket.destination.equals(north.getAddress())) {
-            north.fromSouthTurn(nextPacket);
-        }
-        else {
-            north.fromSouthThru(nextPacket);
-        }
-        return true;
-    }
-
-    protected boolean sendWest() {
-        Packet nextPacket = toWest.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        if (nextPacket.destination.equals(west.getAddress())) {
-            west.fromEastTurn(nextPacket);
-        }
-        else {
-            west.fromEastThru(nextPacket);
-        }
-        return true;
-    }
-
-    protected boolean sendEast() {
-        Packet nextPacket = toEast.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        if (nextPacket.destination.equals(east.getAddress())) {
-            east.fromWestTurn(nextPacket);
-        }
-        else {
-            east.fromWestThru(nextPacket);
-        }
-        return true;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
+public class NWEJunction extends Junction {
+    public NWEJunction(Address address, ExecutorService executor) {
+        super(address, executor);
     }
 
     @Override
@@ -106,11 +25,6 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     }
 
     @Override
-    public void attachEast(WestIn east) {
-        this.east = east;
-    }
-
-    @Override
     public void fromNorthThru(Packet packet) {
         toWest.add(packet);
     }
@@ -121,18 +35,8 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     }
 
     @Override
-    public void attachNorth(SouthIn north) {
-        this.north = north;
-    }
-
-    @Override
     public void fromWestTurn(Packet packet) {
         toNorth.add(packet);
-    }
-
-    @Override
-    public void attachWest(EastIn west) {
-        this.west = west;
     }
 
     @Override
@@ -163,5 +67,56 @@ public class NWEJunction extends Thread implements NorthIn, WestIn, EastIn {
     @Override
     public String getLabel() {
         return "NWE";
+    }
+
+    @Override
+    public void fromSouthThru(Packet packet) {
+        
+    }
+
+    @Override
+    public void fromSouthTurn(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendNorth(Packet packet) {
+        packet.markPath(getAddress());
+        if (packet.destination.equals(north.getAddress())) {
+            north.fromSouthTurn(packet);
+        }
+        else {
+            north.fromSouthThru(packet);
+        }
+        executor.submit(sendNorthTask);
+    }
+
+    @Override
+    protected void sendSouth(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendWest(Packet packet) {
+        packet.markPath(getAddress());
+        if (packet.destination.equals(west.getAddress())) {
+            west.fromEastTurn(packet);
+        }
+        else {
+            west.fromEastThru(packet);
+        }
+        executor.submit(sendWestTask);
+    }
+
+    @Override
+    protected void sendEast(Packet packet) {
+        packet.markPath(getAddress());
+        if (packet.destination.equals(east.getAddress())) {
+            east.fromWestTurn(packet);
+        }
+        else {
+            east.fromWestThru(packet);
+        }
+        executor.submit(sendEastTask);
     }
 }

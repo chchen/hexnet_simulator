@@ -2,7 +2,6 @@ package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.*;
 
-import java.util.Queue;
 import java.util.concurrent.*;
 
 /**

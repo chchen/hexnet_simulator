@@ -55,12 +55,12 @@ public class Network {
         EastIn last;
         ELoopback node0 = new ELoopback(new Address(0, yCoord), executor);
         addJunction(node0);
-        NWEJunction node1 = new NWEJunction(new Address(1, yCoord));
+        NWEJunction node1 = new NWEJunction(new Address(1, yCoord), executor);
         addJunction(node1);
         stitchWE(node0, node1);
         last = node1;
         for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
-            NdNWESJunction node2 = new NdNWESJunction(new Address(xOffset, yCoord));
+            NdNWESJunction node2 = new NdNWESJunction(new Address(xOffset, yCoord), executor);
             addJunction(node2);
             stitchWE(last, node2);
 
@@ -72,7 +72,7 @@ public class Network {
             addJunction(node3);
             stitchWE(node2, node3);
 
-            NdSWENJunction node4 = new NdSWENJunction(new Address(xOffset + 2, yCoord));
+            NdSWENJunction node4 = new NdSWENJunction(new Address(xOffset + 2, yCoord), executor);
             addJunction(node4);
             stitchWE(node3, node4);
 
@@ -80,7 +80,7 @@ public class Network {
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
-            NWEJunction node5 = new NWEJunction(new Address(xOffset + 3, yCoord));
+            NWEJunction node5 = new NWEJunction(new Address(xOffset + 3, yCoord), executor);
             addJunction(node5);
             stitchWE(node4, node5);
 
@@ -103,7 +103,7 @@ public class Network {
         stitchWE(node0, node1);
         last = node1;
         for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
-            NdSWENJunction node2 = new NdSWENJunction(new Address(xOffset, yCoord));
+            NdSWENJunction node2 = new NdSWENJunction(new Address(xOffset, yCoord), executor);
             addJunction(node2);
             stitchWE(last, node2);
 
@@ -111,11 +111,11 @@ public class Network {
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
-            NWEJunction node3 = new NWEJunction(new Address(xOffset + 1, yCoord));
+            NWEJunction node3 = new NWEJunction(new Address(xOffset + 1, yCoord), executor);
             addJunction(node3);
             stitchWE(node2, node3);
 
-            NdNWESJunction node4 = new NdNWESJunction(new Address(xOffset + 2, yCoord));
+            NdNWESJunction node4 = new NdNWESJunction(new Address(xOffset + 2, yCoord), executor);
             addJunction(node4);
             stitchWE(node3, node4);
 
@@ -151,7 +151,7 @@ public class Network {
             assert north != null;
             assert south != null;
 
-            NEdSJunction node12 = new NEdSJunction(new Address(xOffset, yCoord));
+            NEdSJunction node12 = new NEdSJunction(new Address(xOffset, yCoord), executor);
             addJunction(node12);
             stitchNS(north, node12);
             stitchNS(node12, south);
@@ -184,7 +184,7 @@ public class Network {
                 assert nodes[yCoord + 1][xOffset] == null;
                 System.out.println("north is empty");
 
-                north = new SLoopback(new Address(xOffset, yCoord + 1));
+                north = new SLoopback(new Address(xOffset, yCoord + 1), executor);
                 System.out.println("adding loopback at address" + north.getAddress().asString());
                 addJunction(north);
             }
@@ -195,7 +195,7 @@ public class Network {
                 assert nodes[yCoord - 1][xOffset] == null;
                 System.out.println("south is empty");
 
-                south = new NLoopback(new Address(xOffset, yCoord - 1));
+                south = new NLoopback(new Address(xOffset, yCoord - 1), executor);
                 System.out.println("adding loopback at address" + south.getAddress().asString());
                 addJunction(south);
             }
@@ -222,7 +222,7 @@ public Network(Queue<Packet> tracePackets, int rows, int columns) {
 
         this.tracePackets = tracePackets;
 
-        executor = Executors.newWorkStealingPool(64);
+        executor = Executors.newWorkStealingPool(256);
 
         boolean up = true;
         for (int yCoord = 1; yCoord < yAddresses; yCoord = yCoord + 2) {

@@ -1,69 +1,30 @@
 package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.NorthIn;
 import org.nougat.arc.hexnet.Packet;
-import org.nougat.arc.hexnet.SouthIn;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
 
-public class SLoopback extends Thread implements SouthIn {
-    private Address address;
-
-    private NorthIn south;
-
-    private Queue<Packet> toReturn = new ConcurrentLinkedDeque<>();
-
-    private volatile boolean run = true;
-
-    public SLoopback(Address address) {
-        this.address = address;
+public class SLoopback extends Junction {
+    public SLoopback(Address address, ExecutorService executor) {
+        super(address, executor);
     }
 
     @Override
-    public void run() {
-        while (run) {
-            boolean sentS = sendSouth();
-            if (!sentS) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    protected boolean sendSouth() {
-        Packet nextPacket = toReturn.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        south.fromNorthThru(nextPacket);
-        return true;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
+    protected void sendSouth(Packet packet) {
+        packet.markPath(getAddress());
+        south.fromNorthThru(packet);
+        executor.submit(sendSouthTask);
     }
 
     @Override
     public void fromSouthThru(Packet packet) {
-        toReturn.add(packet);
+        toSouth.add(packet);
     }
 
     @Override
     public void fromSouthTurn(Packet packet) {
-        toReturn.add(packet);
-    }
-
-    @Override
-    public void attachSouth(NorthIn south) {
-        this.south = south;
+        toSouth.add(packet);
     }
 
     @Override
@@ -89,5 +50,50 @@ public class SLoopback extends Thread implements SouthIn {
     @Override
     public String getLabel() {
         return "SL";
+    }
+
+    @Override
+    public void fromEastThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromWestThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromNorthThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromEastTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromWestTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromNorthTurn(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendNorth(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendWest(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendEast(Packet packet) {
+
     }
 }

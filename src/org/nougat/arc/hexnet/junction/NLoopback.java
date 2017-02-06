@@ -1,69 +1,23 @@
 package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.Address;
-import org.nougat.arc.hexnet.NorthIn;
 import org.nougat.arc.hexnet.Packet;
-import org.nougat.arc.hexnet.SouthIn;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
 
-public class NLoopback extends Thread implements NorthIn {
-    private Address address;
-
-    private SouthIn north;
-
-    private Queue<Packet> toReturn = new ConcurrentLinkedDeque<>();
-
-    private volatile boolean run = true;
-
-    public NLoopback(Address address) {
-        this.address = address;
-    }
-
-    @Override
-    public void run() {
-        while (run) {
-            boolean sentN = sendNouth();
-            if (!sentN) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    protected boolean sendNouth() {
-        Packet nextPacket = toReturn.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        nextPacket.markPath(getAddress());
-        north.fromSouthThru(nextPacket);
-        return true;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
+public class NLoopback extends Junction {
+    public NLoopback(Address address, ExecutorService executor) {
+        super(address, executor);
     }
 
     @Override
     public void fromNorthThru(Packet packet) {
-        toReturn.add(packet);
+        toNorth.add(packet);
     }
 
     @Override
     public void fromNorthTurn(Packet packet) {
-        toReturn.add(packet);
-    }
-
-    @Override
-    public void attachNorth(SouthIn north) {
-        this.north = north;
+        toNorth.add(packet);
     }
 
     @Override
@@ -89,5 +43,57 @@ public class NLoopback extends Thread implements NorthIn {
     @Override
     public String getLabel() {
         return "NL";
+    }
+
+    @Override
+    public void fromEastThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromWestThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromSouthThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromEastTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromWestTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromSouthTurn(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendNorth(Packet packet) {
+        packet.markPath(getAddress());
+        north.fromSouthThru(packet);
+        executor.submit(sendNorthTask);
+    }
+
+    @Override
+    protected void sendSouth(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendWest(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendEast(Packet packet) {
+
     }
 }
