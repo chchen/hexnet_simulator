@@ -5,6 +5,8 @@ import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 
 public class NetworkView extends JFrame {
@@ -14,6 +16,29 @@ public class NetworkView extends JFrame {
     private Queue<Packet> tracePackets;
 
     private Timer redrawTimer;
+
+    private void runTrace(Address from, Address to) {
+        Sender sendFrom = null;
+        Sender recvTo = null;
+        for (Locatable l : network.destinations) {
+            if (l.getAddress().equals(from)) {
+                sendFrom = (Sender) l;
+            }
+            if (l.getAddress().equals(to)) {
+                recvTo = (Sender) l;
+            }
+        }
+        if (sendFrom == null || recvTo == null) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    String.format("Cannot trace from %s to %s", from.asString(), to.asString()));
+
+        }
+        else {
+            sendFrom.sendPacket(42, to);
+        }
+
+    }
 
     // Constructor to set up the GUI components and event handlers
     public NetworkView(Network network, Queue<Packet> tracePackets) {
@@ -37,7 +62,7 @@ public class NetworkView extends JFrame {
         setTitle("Hexnet");
         setVisible(true);
 
-        redrawTimer = new Timer(250, new ActionListener() {
+        redrawTimer = new Timer(125, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (tracePackets.peek() != null) {
@@ -52,6 +77,29 @@ public class NetworkView extends JFrame {
      * Define inner class DrawCanvas, which is a JPanel used for custom drawing.
      */
     private class DrawCanvas extends JPanel {
+        private Optional<Address> lastAddress = Optional.empty();
+
+        public DrawCanvas() {
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    super.mouseClicked(e);
+                    double closeX = e.getX() / 100;
+                    double closeY = e.getY() / 100;
+                    long clickX = Math.round(closeX);
+                    long clickY = 8 - Math.round(closeY);
+                    Address newAddr = new Address((int) clickX, (int) clickY);
+                    if (lastAddress.isPresent()) {
+                        runTrace(lastAddress.get(), newAddr);
+                        lastAddress = Optional.empty();
+                    }
+                    else {
+                        lastAddress = Optional.of(newAddr);
+                    }
+                }
+            });
+        }
+
         // Override paintComponent to perform your own painting
         @Override
         public void paintComponent(Graphics g) {
@@ -83,7 +131,7 @@ public class NetworkView extends JFrame {
         int xLast = packet.source.getXCoord() * 100;
         int yLast = 800 - (packet.source.getYCoord() * 100);
         g.setColor(Color.green);
-        g.drawRect(xLast, yLast, 10, 10);
+        g.drawRect(xLast - 5, yLast -5, 10, 10);
         g.setColor(Color.blue);
         for (Address a : packet.getPath()) {
             int x = a.getXCoord() * 100;
@@ -93,7 +141,7 @@ public class NetworkView extends JFrame {
             yLast = y;
         }
         g.setColor(Color.red);
-        g.drawRect(xLast, yLast, 20, 20);
+        g.drawRect(xLast - 10, yLast - 10, 20, 20);
         g.setColor(Color.blue);    }
 
     private static void drawNode(Graphics2D g, Locatable node) {

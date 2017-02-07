@@ -1,4 +1,4 @@
-package org.nougat.arc.hexnet.junction;
+package org.nougat.arc.hexnet;
 
 import org.nougat.arc.hexnet.*;
 

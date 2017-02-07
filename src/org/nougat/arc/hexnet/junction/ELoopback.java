@@ -1,6 +1,7 @@
 package org.nougat.arc.hexnet.junction;
 
 import org.nougat.arc.hexnet.Address;
+import org.nougat.arc.hexnet.Junction;
 import org.nougat.arc.hexnet.Packet;
 
 import java.util.concurrent.ExecutorService;

@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
  * A packet-switched network
  */
 public class Network {
+
     private Locatable[][] nodes;
 
     private final int rows;
@@ -64,7 +65,7 @@ public class Network {
             addJunction(node2);
             stitchWE(last, node2);
 
-            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning);
+            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning, executor);
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
@@ -76,7 +77,7 @@ public class Network {
             addJunction(node4);
             stitchWE(node3, node4);
 
-            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets, simulationRunning);
+            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets, simulationRunning, executor);
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
@@ -107,7 +108,7 @@ public class Network {
             addJunction(node2);
             stitchWE(last, node2);
 
-            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning);
+            SDestination dest2 = new SDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning, executor);
             destinations.add(dest2);
             stitchNS(dest2, node2);
 
@@ -119,7 +120,7 @@ public class Network {
             addJunction(node4);
             stitchWE(node3, node4);
 
-            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets, simulationRunning);
+            SDestination dest4 = new SDestination(new Address(xOffset + 2, yCoord), tracePackets, simulationRunning, executor);
             destinations.add(dest4);
             stitchNS(dest4, node4);
 
@@ -156,7 +157,7 @@ public class Network {
             stitchNS(north, node12);
             stitchNS(node12, south);
 
-            WDestination dest12 = new WDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning);
+            WDestination dest12 = new WDestination(new Address(xOffset, yCoord), tracePackets, simulationRunning, executor);
             destinations.add(dest12);
             stitchWE(node12, dest12);
         }

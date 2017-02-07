@@ -3,99 +3,57 @@ package org.nougat.arc.hexnet.destination;
 import org.nougat.arc.hexnet.*;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
 /**
  * A Destination which is connected to a junction to the west.
  */
-public class WDestination extends Thread implements WestIn, Sender {
-    private Address address;
-
-    // Adjacent junctions; We flip directions (junction to the south needs a NorthIn)
-    private EastIn west;
-
-    private Queue<Packet> toWest = new ConcurrentLinkedDeque<>();
-    private Queue<Packet> inbox = new ConcurrentLinkedDeque<>();
-
+public class WDestination extends Junction implements Sender {
     private Queue<Packet> tracePackets;
 
     private Semaphore permit;
-
-    private volatile boolean run = true;
-
-    public WDestination(Address address, Queue<Packet> tracePackets, Semaphore permit) {
-        this.address = address;
+    
+    public WDestination(Address address, Queue<Packet> tracePackets, Semaphore permit, ExecutorService executor) {
+        super(address, executor);
         this.tracePackets = tracePackets;
         this.permit = permit;
     }
 
     @Override
-    public void run() {
-        while (run) {
-            boolean read = readMail();
-            boolean sentW = sendWest();
-            if (!read && !sentW) {
-                try {
-                    Thread.sleep(10);
-                }
-                catch (InterruptedException e) {
-                    // noop
-                }
-            }
-        }
-    }
-
-    private boolean readMail() {
-        Packet nextPacket = inbox.poll();
-        if (nextPacket == null) {
-            return false;
-        }
+    protected void sendEast(Packet packet) {
         System.out.println(String.format(
                 "%s: recv %d from %s in %d ms via %s",
                 address.asString(),
-                nextPacket.payload,
-                nextPacket.source.asString(),
-                nextPacket.latencyMs(),
-                nextPacket.getPathString()
+                packet.payload,
+                packet.source.asString(),
+                packet.latencyMs(),
+                packet.getPathString()
         ));
-        tracePackets.offer(nextPacket);
+        tracePackets.offer(packet);
         permit.release();
-        return true;
-    }
-
-    private boolean sendWest() {
-        Packet nextPacket = toWest.poll();
-        if (nextPacket == null) {
-            return false;
-        }
-        if (nextPacket.destination.yLessThan(west.getAddress())) {
-            west.fromEastTurn(nextPacket);
-        }
-        else {
-            west.fromEastThru(nextPacket);
-        }
-        return true;
+        executor.submit(sendEastTask);
     }
 
     @Override
-    public Address getAddress() {
-        return address;
+    protected void sendWest(Packet packet) {
+        if (packet.destination.yLessThan(west.getAddress())) {
+            west.fromEastTurn(packet);
+        }
+        else {
+            west.fromEastThru(packet);
+        }
+        executor.submit(sendWestTask);
     }
 
     @Override
     public void fromWestThru(Packet packet) {
-        inbox.add(packet);
+        toEast.add(packet);
     }
 
     @Override
     public void fromWestTurn(Packet packet) {
-        inbox.add(packet);
-    }
-
-    @Override
-    public void attachWest(EastIn west) {
-        this.west = west;
+        toEast.add(packet);
     }
 
     public void sendPacket(int payload, Address destination) {
@@ -108,7 +66,6 @@ public class WDestination extends Thread implements WestIn, Sender {
             System.err.println(e.getMessage());
         }
     }
-
 
     @Override
     public boolean hasNorth() {
@@ -127,11 +84,51 @@ public class WDestination extends Thread implements WestIn, Sender {
 
     @Override
     public boolean hasEast() {
-        return false;
+        return true;
     }
 
     @Override
     public String getLabel() {
         return "";
+    }
+
+    @Override
+    public void fromEastThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromNorthThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromSouthThru(Packet packet) {
+
+    }
+
+    @Override
+    public void fromEastTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromNorthTurn(Packet packet) {
+
+    }
+
+    @Override
+    public void fromSouthTurn(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendNorth(Packet packet) {
+
+    }
+
+    @Override
+    protected void sendSouth(Packet packet) {
+
     }
 }

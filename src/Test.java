@@ -27,7 +27,5 @@ public class Test {
                 NetworkView view = new NetworkView(n, tracePackets);
             }
         });
-
     }
-
 }
