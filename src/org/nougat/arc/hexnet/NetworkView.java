@@ -62,7 +62,7 @@ public class NetworkView extends JFrame {
         setTitle("Hexnet");
         setVisible(true);
 
-        redrawTimer = new Timer(125, new ActionListener() {
+        redrawTimer = new Timer(75, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (tracePackets.peek() != null) {
