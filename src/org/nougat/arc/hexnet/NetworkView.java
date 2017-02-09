@@ -80,6 +80,7 @@ public class NetworkView extends JFrame {
         private Optional<Address> lastAddress = Optional.empty();
 
         public DrawCanvas() {
+            setBackground(Color.white);
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -105,6 +106,8 @@ public class NetworkView extends JFrame {
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
+            Font stringFont = new Font( "SansSerif", Font.PLAIN, 18 );
+            g2.setFont(stringFont);
             g2.setStroke(new BasicStroke(1));
             g2.setColor(Color.black);
             for (Locatable[] row : network.getNodes()) {
@@ -127,11 +130,11 @@ public class NetworkView extends JFrame {
         g.drawString(
                 String.format("Path from %s to %s", packet.source.asString(), packet.destination.asString()),
                 10,
-                10);
+                20);
         int xLast = packet.source.getXCoord() * 100;
         int yLast = 800 - (packet.source.getYCoord() * 100);
         g.setColor(Color.green);
-        g.drawRect(xLast - 5, yLast -5, 10, 10);
+        g.drawRect(xLast - 10, yLast -10, 20, 20);
         g.setColor(Color.blue);
         for (Address a : packet.getPath()) {
             int x = a.getXCoord() * 100;
@@ -141,7 +144,7 @@ public class NetworkView extends JFrame {
             yLast = y;
         }
         g.setColor(Color.red);
-        g.drawRect(xLast - 10, yLast - 10, 20, 20);
+        g.drawRect(xLast - 15, yLast - 15, 30, 30);
         g.setColor(Color.blue);    }
 
     private static void drawNode(Graphics2D g, Locatable node) {
