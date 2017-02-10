@@ -61,7 +61,7 @@ public class Network {
         stitchWE(node0, node1);
         last = node1;
         for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
-            NdNWESJunction node2 = new NdNWESJunction(new Address(xOffset, yCoord), executor);
+            NdWEJunction node2 = new NdWEJunction(new Address(xOffset, yCoord), executor);
             addJunction(node2);
             stitchWE(last, node2);
 
@@ -73,7 +73,7 @@ public class Network {
             addJunction(node3);
             stitchWE(node2, node3);
 
-            NdSWENJunction node4 = new NdSWENJunction(new Address(xOffset + 2, yCoord), executor);
+            NdWEJunction node4 = new NdWEJunction(new Address(xOffset + 2, yCoord), executor);
             addJunction(node4);
             stitchWE(node3, node4);
 
@@ -104,7 +104,7 @@ public class Network {
         stitchWE(node0, node1);
         last = node1;
         for (int xOffset = 2; xOffset < xAddresses - 1; xOffset = xOffset + 4) {
-            NdSWENJunction node2 = new NdSWENJunction(new Address(xOffset, yCoord), executor);
+            NdWEJunction node2 = new NdWEJunction(new Address(xOffset, yCoord), executor);
             addJunction(node2);
             stitchWE(last, node2);
 
@@ -116,7 +116,7 @@ public class Network {
             addJunction(node3);
             stitchWE(node2, node3);
 
-            NdNWESJunction node4 = new NdNWESJunction(new Address(xOffset + 2, yCoord), executor);
+            NdWEJunction node4 = new NdWEJunction(new Address(xOffset + 2, yCoord), executor);
             addJunction(node4);
             stitchWE(node3, node4);
 

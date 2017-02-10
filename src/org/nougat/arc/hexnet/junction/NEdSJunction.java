@@ -9,38 +9,6 @@ public class NEdSJunction extends Junction {
     public NEdSJunction(Address address, ExecutorService executor) {
         super(address, executor);
     }
-
-    @Override
-    protected void sendNorth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.xLessThan(north.getAddress())) {
-            north.fromSouthTurn(packet);
-        }
-        else {
-            north.fromSouthThru(packet);
-        }
-        executor.submit(sendNorthTask);
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.xLessThan(south.getAddress())) {
-            south.fromNorthThru(packet);
-        }
-        else {
-            south.fromNorthTurn(packet);
-        }
-        executor.submit(sendSouthTask);
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-        packet.markPath(getAddress());
-        east.fromWestThru(packet);
-        executor.submit(sendEastTask);
-    }
-
     @Override
     public void fromEastThru(Packet packet) {
         toNorth.add(packet);
@@ -107,7 +75,7 @@ public class NEdSJunction extends Junction {
     }
 
     @Override
-    protected void sendWest(Packet packet) {
-
+    public boolean destinationIsEast() {
+        return true;
     }
 }

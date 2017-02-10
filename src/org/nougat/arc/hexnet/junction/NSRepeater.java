@@ -12,30 +12,6 @@ public class NSRepeater extends Junction {
     }
 
     @Override
-    protected void sendNorth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.xLessThan(north.getAddress())) {
-            north.fromSouthTurn(packet);
-        }
-        else {
-            north.fromSouthThru(packet);
-        }
-        executor.submit(sendNorthTask);
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.xLessThan(south.getAddress())) {
-            south.fromNorthThru(packet);
-        }
-        else {
-            south.fromNorthTurn(packet);
-        }
-        executor.submit(sendSouthTask);
-    }
-
-    @Override
     public void fromEastThru(Packet packet) {
 
     }
@@ -98,15 +74,5 @@ public class NSRepeater extends Junction {
     @Override
     public String getLabel() {
         return "NS";
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-
     }
 }

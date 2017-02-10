@@ -4,6 +4,5 @@ package org.nougat.arc.hexnet;
 public interface SouthIn extends Locatable {
     public void fromSouthThru(Packet packet);
     public void fromSouthTurn(Packet packet);
-
     public void attachSouth(NorthIn south);
 }

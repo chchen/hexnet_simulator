@@ -21,7 +21,7 @@ public class WDestination extends Junction implements Sender {
     }
 
     @Override
-    protected void sendEast(Packet packet) {
+    protected void readMailbox(Packet packet) {
         System.out.println(String.format(
                 "%s: recv %d from %s in %d ms via %s",
                 address.asString(),
@@ -32,28 +32,17 @@ public class WDestination extends Junction implements Sender {
         ));
         tracePackets.offer(packet);
         permit.release();
-        executor.submit(sendEastTask);
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-        if (packet.destination.yLessThan(west.getAddress())) {
-            west.fromEastTurn(packet);
-        }
-        else {
-            west.fromEastThru(packet);
-        }
-        executor.submit(sendWestTask);
+        reReadMailboxTask();
     }
 
     @Override
     public void fromWestThru(Packet packet) {
-        toEast.add(packet);
+        mailbox.add(packet);
     }
 
     @Override
     public void fromWestTurn(Packet packet) {
-        toEast.add(packet);
+        mailbox.add(packet);
     }
 
     public void sendPacket(int payload, Address destination) {
@@ -84,7 +73,7 @@ public class WDestination extends Junction implements Sender {
 
     @Override
     public boolean hasEast() {
-        return true;
+        return false;
     }
 
     @Override
@@ -123,12 +112,5 @@ public class WDestination extends Junction implements Sender {
     }
 
     @Override
-    protected void sendNorth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-
-    }
+    public boolean isDestination() {return true;}
 }

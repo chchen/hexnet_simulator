@@ -70,13 +70,4 @@ public class ELoopback extends Junction {
 
     @Override
     public void fromSouthTurn(Packet packet) {}
-
-    @Override
-    protected void sendNorth(Packet packet) {}
-
-    @Override
-    protected void sendSouth(Packet packet) {}
-
-    @Override
-    protected void sendWest(Packet packet) {}
 }

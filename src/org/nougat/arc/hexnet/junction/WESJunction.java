@@ -15,42 +15,6 @@ public class WESJunction extends Junction {
     }
 
     @Override
-    protected void sendWest(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(west.getAddress())) {
-            west.fromEastTurn(packet);
-        }
-        else {
-            west.fromEastThru(packet);
-        }
-        executor.submit(sendWestTask);
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(east.getAddress())) {
-            east.fromWestTurn(packet);
-        }
-        else {
-            east.fromWestThru(packet);
-        }
-        executor.submit(sendEastTask);
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(south.getAddress())) {
-            south.fromNorthTurn(packet);
-        }
-        else {
-            south.fromNorthThru(packet);
-        }
-        executor.submit(sendSouthTask);
-    }
-
-    @Override
     public void fromWestThru(Packet packet) {
         toEast.add(packet);
     }
@@ -110,7 +74,4 @@ public class WESJunction extends Junction {
 
     @Override
     public void fromNorthTurn(Packet packet) {}
-
-    @Override
-    protected void sendNorth(Packet packet) {}
 }

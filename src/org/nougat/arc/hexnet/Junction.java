@@ -1,7 +1,5 @@
 package org.nougat.arc.hexnet;
 
-import org.nougat.arc.hexnet.*;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -16,10 +14,16 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
     protected EastIn west;
     protected WestIn east;
 
+    protected Router northRouter;
+    protected Router southRouter;
+    protected Router westRouter;
+    protected Router eastRouter;
+
     protected BlockingQueue<Packet> toNorth = new LinkedBlockingQueue<>();
     protected BlockingQueue<Packet> toSouth = new LinkedBlockingQueue<>();
     protected BlockingQueue<Packet> toWest = new LinkedBlockingQueue<>();
     protected BlockingQueue<Packet> toEast = new LinkedBlockingQueue<>();
+    protected BlockingQueue<Packet> mailbox = new LinkedBlockingQueue<>();
 
     public Junction(Address address, ExecutorService executor) {
         this.address = address;
@@ -29,16 +33,23 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
     @Override
     public void run() {
         if (hasNorth()) {
+            northRouter = RouterFactory.northRouter(north);
             executor.submit(sendNorthTask);
         }
         if (hasSouth()) {
+            southRouter = RouterFactory.southRouter(south);
             executor.submit(sendSouthTask);
         }
         if (hasWest()) {
+            westRouter = RouterFactory.westRouter(west);
             executor.submit(sendWestTask);
         }
         if (hasEast()) {
+            eastRouter = RouterFactory.eastRouter(east);
             executor.submit(sendEastTask);
+        }
+        if (isDestination()) {
+            executor.submit(readMailboxTask);
         }
     }
 
@@ -82,7 +93,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
         }
     };
 
-    private void reSendNorthTask() {
+    protected void reSendNorthTask() {
         executor.submit(sendNorthTask);
     }
 
@@ -101,7 +112,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
         }
     };
 
-    private void reSendSouthTask() {
+    protected void reSendSouthTask() {
         executor.submit(sendSouthTask);
     }
 
@@ -120,7 +131,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
         }
     };
 
-    private void reSendWestTask() {
+    protected void reSendWestTask() {
         executor.submit(sendWestTask);
     }
 
@@ -139,16 +150,81 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
         }
     };
 
-    private void reSendEastTask() {
+    protected void reSendEastTask() {
         executor.submit(sendEastTask);
     }
 
-    protected abstract void sendNorth(Packet packet);
+    protected final Runnable readMailboxTask = () -> {
+        try {
+            Packet packet = mailbox.poll(100, TimeUnit.MILLISECONDS);
+            if (packet != null) {
+                readMailbox(packet);
+            }
+            else {
+                reReadMailboxTask();
+            }
+        }
+        catch (InterruptedException e) {
+            //
+        }
+    };
 
-    protected abstract void sendSouth(Packet packet);
+    protected void reReadMailboxTask() {
+        executor.submit(readMailboxTask);
+    }
 
-    protected abstract void sendWest(Packet packet);
+    protected void readMailbox(Packet packet) {};
 
-    protected abstract void sendEast(Packet packet);
+    @Override
+    public boolean destinationIsWest() {
+        return false;
+    }
 
+    @Override
+    public boolean destinationIsEast() {
+        return false;
+    }
+
+    @Override
+    public boolean destinationIsNorth() {
+        return false;
+    }
+
+    @Override
+    public boolean destinationIsSouth() {
+        return false;
+    }
+
+    @Override
+    public boolean isDestination() {
+        return false;
+    }
+
+    protected void sendNorth(Packet packet) {
+        System.out.println(String.format("%s: routing %s -> %s north", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        packet.markPath(getAddress());
+        northRouter.route(packet);
+        reSendNorthTask();
+    }
+
+    protected void sendSouth(Packet packet) {
+        System.out.println(String.format("%s: routing %s -> %s south", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        packet.markPath(getAddress());
+        southRouter.route(packet);
+        reSendSouthTask();
+    }
+
+    protected void sendWest(Packet packet) {
+        System.out.println(String.format("%s: routing %s -> %s west", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        packet.markPath(getAddress());
+        westRouter.route(packet);
+        reSendWestTask();;
+    }
+
+    protected void sendEast(Packet packet) {
+        System.out.println(String.format("%s: routing %s -> %s east", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        packet.markPath(getAddress());
+        eastRouter.route(packet);
+        reSendEastTask();
+    }
 }

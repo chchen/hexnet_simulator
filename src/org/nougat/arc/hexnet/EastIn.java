@@ -4,6 +4,5 @@ package org.nougat.arc.hexnet;
 public interface EastIn extends Locatable {
     public void fromEastThru(Packet packet);
     public void fromEastTurn(Packet packet);
-
     public void attachEast(WestIn east);
 }

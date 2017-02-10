@@ -9,4 +9,9 @@ public interface Locatable {
     public boolean hasWest();
     public boolean hasEast();
     public String getLabel();
+    public boolean isDestination();
+    public boolean destinationIsNorth();
+    public boolean destinationIsSouth();
+    public boolean destinationIsWest();
+    public boolean destinationIsEast();
 }

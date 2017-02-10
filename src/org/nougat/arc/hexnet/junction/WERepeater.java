@@ -76,23 +76,4 @@ public class WERepeater extends Junction {
     public String getLabel() {
         return "WE";
     }
-
-    @Override
-    protected void sendNorth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-
-    }
 }

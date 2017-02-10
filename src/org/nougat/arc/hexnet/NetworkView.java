@@ -85,11 +85,11 @@ public class NetworkView extends JFrame {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     super.mouseClicked(e);
-                    double closeX = e.getX() / 100;
-                    double closeY = e.getY() / 100;
-                    long clickX = Math.round(closeX);
-                    long clickY = 8 - Math.round(closeY);
-                    Address newAddr = new Address((int) clickX, (int) clickY);
+                    float closeX = (float) e.getX() / 100;
+                    float closeY = (float) e.getY() / 100;
+                    int clickX = Math.round(closeX);
+                    int clickY = 8 - Math.round(closeY);
+                    Address newAddr = new Address(clickX, clickY);
                     if (lastAddress.isPresent()) {
                         runTrace(lastAddress.get(), newAddr);
                         lastAddress = Optional.empty();

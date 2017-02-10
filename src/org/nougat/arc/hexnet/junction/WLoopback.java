@@ -70,13 +70,4 @@ public class WLoopback extends Junction {
 
     @Override
     public void fromSouthTurn(Packet packet) {}
-
-    @Override
-    protected void sendNorth(Packet packet) {}
-
-    @Override
-    protected void sendSouth(Packet packet) {}
-
-    @Override
-    protected void sendEast(Packet packet) {}
 }

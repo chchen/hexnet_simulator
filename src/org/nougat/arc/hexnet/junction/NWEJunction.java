@@ -78,45 +78,4 @@ public class NWEJunction extends Junction {
     public void fromSouthTurn(Packet packet) {
 
     }
-
-    @Override
-    protected void sendNorth(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(north.getAddress())) {
-            north.fromSouthTurn(packet);
-        }
-        else {
-            north.fromSouthThru(packet);
-        }
-        executor.submit(sendNorthTask);
-    }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(west.getAddress())) {
-            west.fromEastTurn(packet);
-        }
-        else {
-            west.fromEastThru(packet);
-        }
-        executor.submit(sendWestTask);
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-        packet.markPath(getAddress());
-        if (packet.destination.equals(east.getAddress())) {
-            east.fromWestTurn(packet);
-        }
-        else {
-            east.fromWestThru(packet);
-        }
-        executor.submit(sendEastTask);
-    }
 }

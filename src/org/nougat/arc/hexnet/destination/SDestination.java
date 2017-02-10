@@ -21,18 +21,7 @@ public class SDestination extends Junction implements Sender {
     }
 
     @Override
-    protected void sendSouth(Packet packet) {
-        if (packet.destination.xGreaterThan(south.getAddress())) {
-            south.fromNorthTurn(packet);
-        }
-        else {
-            south.fromNorthThru(packet);
-        }
-        executor.submit(sendSouthTask);
-    }
-
-    @Override
-    protected void sendNorth(Packet packet) {
+    protected void readMailbox(Packet packet) {
         System.out.println(String.format(
                 "%s: recv %d from %s in %d ms via %s",
                 address.asString(),
@@ -43,17 +32,17 @@ public class SDestination extends Junction implements Sender {
         ));
         tracePackets.offer(packet);
         permit.release();
-        executor.submit(sendNorthTask);
+        reReadMailboxTask();
     }
 
     @Override
     public void fromSouthThru(Packet packet) {
-        toNorth.add(packet);
+        mailbox.add(packet);
     }
 
     @Override
     public void fromSouthTurn(Packet packet) {
-        toNorth.add(packet);
+        mailbox.add(packet);
     }
 
     @Override
@@ -70,7 +59,7 @@ public class SDestination extends Junction implements Sender {
 
     @Override
     public boolean hasNorth() {
-        return true;
+        return false;
     }
 
     @Override
@@ -124,12 +113,5 @@ public class SDestination extends Junction implements Sender {
     }
 
     @Override
-    protected void sendWest(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-
-    }
+    public boolean isDestination() { return true; }
 }

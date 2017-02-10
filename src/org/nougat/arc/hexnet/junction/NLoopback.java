@@ -82,19 +82,4 @@ public class NLoopback extends Junction {
         north.fromSouthThru(packet);
         executor.submit(sendNorthTask);
     }
-
-    @Override
-    protected void sendSouth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-
-    }
 }

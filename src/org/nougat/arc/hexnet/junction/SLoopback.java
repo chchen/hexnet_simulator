@@ -82,19 +82,4 @@ public class SLoopback extends Junction {
     public void fromNorthTurn(Packet packet) {
 
     }
-
-    @Override
-    protected void sendNorth(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendWest(Packet packet) {
-
-    }
-
-    @Override
-    protected void sendEast(Packet packet) {
-
-    }
 }
