@@ -21,6 +21,10 @@ public class Address {
         return xCoord;
     }
 
+    public boolean equals(int x, int y) {
+        return (xCoord == x && yCoord == y);
+    }
+
     public boolean equals(Address other) {
         return other.xCoord == this.xCoord && other.yCoord == this.yCoord;
     }
