@@ -14,4 +14,5 @@ public interface Locatable {
     public boolean destinationIsSouth();
     public boolean destinationIsWest();
     public boolean destinationIsEast();
+    public int getTraversals();
 }

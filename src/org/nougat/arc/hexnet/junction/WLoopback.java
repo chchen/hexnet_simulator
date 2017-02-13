@@ -13,6 +13,7 @@ public class WLoopback extends Junction {
 
     @Override
     protected void sendWest(Packet packet) {
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         west.fromEastThru(packet);
         executor.submit(sendWestTask);

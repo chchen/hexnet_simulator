@@ -13,6 +13,7 @@ public class ELoopback extends Junction {
 
     @Override
     protected void sendEast(Packet packet) {
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         east.fromWestThru(packet);
         executor.submit(sendEastTask);

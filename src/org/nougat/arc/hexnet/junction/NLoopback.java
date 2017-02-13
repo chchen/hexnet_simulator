@@ -78,6 +78,7 @@ public class NLoopback extends Junction {
 
     @Override
     protected void sendNorth(Packet packet) {
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         north.fromSouthThru(packet);
         executor.submit(sendNorthTask);

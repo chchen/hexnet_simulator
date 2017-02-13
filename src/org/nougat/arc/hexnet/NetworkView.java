@@ -119,7 +119,6 @@ public class NetworkView extends JFrame {
             }
             Packet p = tracePackets.poll();
             if (p != null) {
-                g2.setColor(Color.blue);
                 g2.setStroke(new BasicStroke(5));
                 drawPath(g2, p);
             }
@@ -133,6 +132,7 @@ public class NetworkView extends JFrame {
                 20);
         int xLast = packet.source.getXCoord() * 100;
         int yLast = 800 - (packet.source.getYCoord() * 100);
+        Color lastColor = g.getColor();
         g.setColor(Color.green);
         g.drawRect(xLast - 10, yLast -10, 20, 20);
         g.setColor(Color.blue);
@@ -145,12 +145,13 @@ public class NetworkView extends JFrame {
         }
         g.setColor(Color.red);
         g.drawRect(xLast - 15, yLast - 15, 30, 30);
-        g.setColor(Color.blue);    }
+        g.setColor(lastColor);
+    }
 
     private static void drawNode(Graphics2D g, Locatable node) {
         int xOrigin = node.getAddress().getXCoord() * 100;
         int yOrigin = 800 - (node.getAddress().getYCoord() * 100);
-        g.drawString(node.getAddress().asString(), xOrigin + 10, yOrigin + 20);
+        printNode(g, node, xOrigin, yOrigin);
         if (node.hasNorth()) {
             g.drawLine(xOrigin, yOrigin, xOrigin, yOrigin - 50);
         }
@@ -163,5 +164,20 @@ public class NetworkView extends JFrame {
         if (node.hasEast()) {
             g.drawLine(xOrigin, yOrigin, xOrigin + 50, yOrigin);
         }
+    }
+
+    private static void printNode(Graphics2D g, Locatable node, int xOrigin, int yOrigin) {
+        Color lastColor = g.getColor();
+        int traversals = node.getTraversals();
+        if (traversals < 50) {
+            g.setColor(Color.GREEN);
+        } else if (traversals < 100) {
+            g.setColor(Color.ORANGE);
+        } else {
+            g.setColor(Color.RED);
+        }
+        g.drawString(node.getAddress().asString(), xOrigin + 10, yOrigin + 20);
+        g.drawString(String.format("%d", traversals), xOrigin + 10, yOrigin + 40);
+        g.setColor(lastColor);
     }
 }

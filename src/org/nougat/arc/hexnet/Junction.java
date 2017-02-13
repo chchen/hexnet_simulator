@@ -4,6 +4,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class Junction extends Thread implements NorthIn, SouthIn, WestIn, EastIn {
     protected ExecutorService executor;
@@ -18,6 +19,8 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
     protected Router southRouter;
     protected Router westRouter;
     protected Router eastRouter;
+
+    protected AtomicInteger traversals = new AtomicInteger();
 
     protected BlockingQueue<Packet> toNorth = new LinkedBlockingQueue<>();
     protected BlockingQueue<Packet> toSouth = new LinkedBlockingQueue<>();
@@ -202,6 +205,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
 
     protected void sendNorth(Packet packet) {
         System.out.println(String.format("%s: routing %s -> %s north", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         northRouter.route(packet);
         reSendNorthTask();
@@ -209,6 +213,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
 
     protected void sendSouth(Packet packet) {
         System.out.println(String.format("%s: routing %s -> %s south", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         southRouter.route(packet);
         reSendSouthTask();
@@ -216,6 +221,7 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
 
     protected void sendWest(Packet packet) {
         System.out.println(String.format("%s: routing %s -> %s west", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         westRouter.route(packet);
         reSendWestTask();;
@@ -223,8 +229,14 @@ public abstract class Junction extends Thread implements NorthIn, SouthIn, WestI
 
     protected void sendEast(Packet packet) {
         System.out.println(String.format("%s: routing %s -> %s east", getAddress().asString(), packet.source.asString(), packet.destination.asString()));
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         eastRouter.route(packet);
         reSendEastTask();
+    }
+
+    @Override
+    public int getTraversals() {
+        return traversals.get();
     }
 }

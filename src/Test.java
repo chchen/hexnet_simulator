@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Test {
     static public void main(String[] args) {
         Queue<Packet> tracePackets = new ConcurrentLinkedQueue<>();
-        Network n = new Network(tracePackets,3, 2, Arrays.asList(new Address(1,6), new Address(2, 7)));
+        Network n = new Network(tracePackets,3, 2, new ArrayList<>());
         try {
             n.start();
             for (Locatable l : n.destinations) {

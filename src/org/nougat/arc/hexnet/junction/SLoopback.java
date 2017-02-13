@@ -13,6 +13,7 @@ public class SLoopback extends Junction {
 
     @Override
     protected void sendSouth(Packet packet) {
+        traversals.incrementAndGet();
         packet.markPath(getAddress());
         south.fromNorthThru(packet);
         executor.submit(sendSouthTask);
