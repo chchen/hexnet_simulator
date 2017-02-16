@@ -60,7 +60,7 @@ public class Network {
 
         this.tracePackets = tracePackets;
 
-        executor = Executors.newWorkStealingPool(256);
+        executor = Executors.newCachedThreadPool();
 
         boolean up = true;
         for (int yCoord = 1; yCoord < yAddresses; yCoord = yCoord + 2) {

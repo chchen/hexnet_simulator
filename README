@@ -1,0 +1,19 @@
+This requires the following software to build:
+
+Java Development Kit 1.8 or higher,
+Apache Ant
+
+1) Create a file in the source root called "hexbricks.properties" that has the following line:
+
+jdk.home.1.8=/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home
+
+Your jdk.home.1.8 value will vary depending on your machine, and where you have Java installed.
+
+2) Run "ant" in your source root.
+
+This will compile the class files and create a JAR executable which you can then run.
+The test JAR is placed in out/artifacts/hexbricks_jar.
+
+3) Run the test program:
+
+java -jar out/artifacts/hexbricks_jar/hexbricks.jar
