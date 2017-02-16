@@ -58,11 +58,11 @@ final class RouterFactory {
             return new Router() {
                 @Override
                 public void route(Packet packet) {
-                    if (packet.destination.xLessThan(next.getAddress())) {
-                        next.fromNorthThru(packet);
+                    if (packet.destination.xGreaterThan(next.getAddress())) {
+                        next.fromNorthTurn(packet);
                     }
                     else {
-                        next.fromNorthTurn(packet);
+                        next.fromNorthThru(packet);
                     }
                 }
             };
